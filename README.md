@@ -10,4 +10,4 @@
 	•	Dynamic Routing: Automatically handle routing based on schema configurations.
 
 
-[link](https://www.npmjs.com/package/yvr-headless-cms)
+[yvr-headless-cms npm](https://www.npmjs.com/package/yvr-headless-cms)
