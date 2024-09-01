@@ -21,10 +21,15 @@ const actionMethodMap: Record<Action, string> = {
 async function createRoute(req: Request, res: Response) {
     let [modelName, action] = req.path.split(':') as [string, Action];
 
+    modelName = modelName.slice(1); // modelName başındaki / karakterini kaldır
+    modelName = modelName.charAt(0).toUpperCase() + modelName.slice(1); // modelName'i baş harfi büyük yap
+    
     // Query parametrelerini req.query üzerinden alalım
     const queries = req.query;
 
     const { filters, options } = splitFilterAndOptions(queries as Record<string, string>);
+
+    const populateFields = req.query.populate ? (req.query.populate as string).split(',') : [];
 
     const schema = loadSchema(modelName);
     if (!schema) {
@@ -43,7 +48,7 @@ async function createRoute(req: Request, res: Response) {
         const itemId = req.query.id;
         switch (action) {
             case "getAll":
-                res.json(await controller.getAllItems(filters, options));
+                res.json(await controller.getAllItems(filters, options, populateFields));
                 break;
             case "get":
                 const item = await controller.getItem(itemId as string);
@@ -57,7 +62,7 @@ async function createRoute(req: Request, res: Response) {
                 updatedItem ? res.json(updatedItem) : res.status(404).json({ error: `${modelName} not found` });
                 break;
             case "delete":
-                const deletedItem = await controller.deleteItem(req.params.id);
+                const deletedItem = await controller.deleteItem(itemId as string);
                 deletedItem ? res.json(deletedItem) : res.status(404).json({ error: `${modelName} not found` });
                 break;
             case "login":
@@ -70,7 +75,8 @@ async function createRoute(req: Request, res: Response) {
         res.status(500).json({ error: err.message });
     }
 }
-
-router.use(authMiddleware, createRoute);
+ 
+router.use(createRoute); //TODO: Tüm istekler bu route üzerinden geçecek. Ve daha authMiddleware fonksiyonunu çağıracağız.
 
 export default router;
+

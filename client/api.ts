@@ -25,7 +25,6 @@ const headers = () => {
 const api = {
   get: async (path: string) => {
     try {
-      console.log('path:', path);
       const { data } = await axios.get(`${apiUrl}${path}`, headers());
       return data;
     } catch (error: any) {

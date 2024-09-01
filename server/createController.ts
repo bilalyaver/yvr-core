@@ -1,6 +1,8 @@
 import mongoose, { Document, FilterQuery, Model, Schema } from 'mongoose';
 import { getConfig } from '../config';
 import bcrypt from 'bcrypt';
+import loadSchema from './loadSchema';
+import { loadModel } from './loadModel';
 
 // Field type tanımlaması
 export interface Field {
@@ -9,6 +11,8 @@ export interface Field {
     required?: boolean;
     unique?: boolean;
     select?: boolean;
+    ref?: string;
+    referenceSchema?: string;
 }
 
 // SchemaJson interface tanımlaması
@@ -31,47 +35,12 @@ export interface Controller<T extends Document> {
     getItem(id: string): Promise<T | null>;
     updateItem(id: string, data: Partial<T>): Promise<T | null>;
     deleteItem(id: string): Promise<T | null>;
-    getAllItems(filter?: Partial<T>, options?: Record<string, unknown>): Promise<T>;
+    getAllItems(filter?: Partial<T>, options?: Record<string, unknown>, populateFields?: string[]): Promise<T>;
 }
 
 function createController<T extends Document>(schemaJson: SchemaJson): Controller<T> {
-    const { model, fields } = schemaJson;
 
-    // 1. Mongoose Schema oluşturulması
-    const schemaDefinition: Record<string, any> = {};
-
-    fields.forEach(field => {
-        schemaDefinition[field.name] = {
-            type: field.type,
-            required: field.required || false,
-            unique: field.unique || false,
-            select: field.name === 'password' ? false : true  // Eğer alan password ise select: false olarak ayarlanır
-        };
-
-        // Eğer alan bir password ise, hashle
-        if (field.name === 'password') {
-            schemaDefinition[field.name].set = (value: string) => {
-                return bcrypt.hashSync(value, 10);
-            };
-        }
-
-        // Eğer alan bir ObjectId ise, referans alanı olarak ayarla
-        if (field.type === 'ObjectId') {
-            schemaDefinition[field.name].ref = field.name;
-        }
-    });
-
-    const schema = new Schema<T>(schemaDefinition);
-
-    // 2. Mongoose Model oluşturulması
-    let Model: Model<T>;
-    try {
-        // Eğer model daha önce tanımlandıysa, mevcut modeli kullan
-        Model = mongoose.model<T>(model.name);
-    } catch (error) {
-        // Eğer model tanımlı değilse, yeni bir model oluştur
-        Model = mongoose.model<T>(model.name, schema);
-    }
+    const Model = loadModel<T>(schemaJson);
 
     // 3. CRUD Fonksiyonları
     return {
@@ -88,13 +57,28 @@ function createController<T extends Document>(schemaJson: SchemaJson): Controlle
         async deleteItem(id: string): Promise<T | null> {
             return await Model.findByIdAndDelete(id).exec();
         },
-        async getAllItems(filter: FilterQuery<T> = {}, options: Record<string, unknown> = {}): Promise<T> {
-            const list = await Model.find(filter, null, options).exec();
+        async getAllItems(filter: FilterQuery<T> = {}, options: Record<string, unknown> = {}, populateFields: string[] = []): Promise<T> {
+            let query = Model.find(filter, null, options).setOptions({ strictPopulate: false });
+
+            if (populateFields.length > 0) {
+                
+                populateFields.forEach(field => {
+                    const itemSchemaJson = loadSchema(field);
+                    if (!itemSchemaJson) {
+                        return;
+                    }
+                    loadModel<T>(itemSchemaJson);
+                    query = query.populate(field);
+                });
+            }
+
+            const list = await query.exec();
             const count = await Model.countDocuments(filter); 
             const data = { count, list };
             return data as unknown as T;
         }
     };
 }
+
 
 export default createController;

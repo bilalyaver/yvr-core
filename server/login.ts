@@ -16,7 +16,7 @@ interface IUser extends Document {
 
 }
 
-const userSchema = loadSchema('user');
+const userSchema = loadSchema('User');
 const userController = createController<IUser>(userSchema);
 
 export async function login(req: Request, res: Response) {
@@ -50,7 +50,7 @@ export async function login(req: Request, res: Response) {
                 name: foundUser.name
             },
             jwtSecret || 'your_jwt_secret',
-            { expiresIn: '1h' }
+            { expiresIn: '1d' }
         );
 
         res.json({ token, user: { name: foundUser.name, email: foundUser.email } });

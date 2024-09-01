@@ -15,7 +15,8 @@ export function getConfig(): Config {
       apiKey: process.env.API_KEY,
       modelsPath: process.env.MODELS_PATH,
       dbUri: process.env.DB_URI,
-      jwtSecret: process.env.JWT_SECRET
+      jwtSecret: process.env.JWT_SECRET,
+      publicPath: process.env.PUBLIC_PATH,
       // Diğer çevresel değişkenler burada eklenebilir
   };
 }

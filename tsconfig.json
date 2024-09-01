@@ -9,6 +9,7 @@
     "outDir": "./dist",
     "declaration": true,
     "rootDir": "./",
+    "jsx": "react-jsx",
   },
   "include": [
     "client/**/*",
