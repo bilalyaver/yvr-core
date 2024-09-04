@@ -35,7 +35,8 @@ export function loadModel<T extends Document>(schemaJson: SchemaJson): Model<T> 
             field.referenceSchema = 'Media';
         }
 
-        if (field.type == 'Slug') {
+        if (field.type == 'Slug' || field.type == 'RichText') {
+            // Hem Slug hem de RichText alanları String olarak tanımlanıyor
             field.type = 'String';
         }
     });
