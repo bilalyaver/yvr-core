@@ -29,7 +29,6 @@ const upload = multer({ storage: storage });
 export const uploadFile = async (req: Request, res: Response) => {
     upload.single('file')(req, res, (err) => {
         if (err) {
-            console.error(err);
             return res.status(500).json({ error: 'Media upload failed.' });
         }
 
@@ -52,8 +51,6 @@ export const uploadFile = async (req: Request, res: Response) => {
             url: `/images/${file?.filename || ''}`
         } as Partial<Document<unknown, any, any>>);
 
-        console.log('Media uploaded successfully.', file);
-
 
         return res.status(200).json({ message: 'Media uploaded successfully.', file });
     });
@@ -71,7 +68,7 @@ export const deleteFile = async (req: Request, res: Response) => {
         const fileId = req.query.id;
 
         // Veritabanından dosyayı bulma
-        const fileItem = await fileController.getItem(fileId as string);
+        const fileItem = await fileController.getItem({ id: fileId as string });
 
         if (!fileItem) {
             return res.status(404).json({ error: 'Media not found.' });
@@ -87,16 +84,13 @@ export const deleteFile = async (req: Request, res: Response) => {
         // Dosya sisteminden dosyayı silme
         fs.unlink(filePath, (err) => {
             if (err) {
-                console.error('Failed to delete media:', err);
                 return res.status(500).json({ error: 'Failed to delete media.' });
             }
-
-            console.log('Media deleted successfully.');
             return res.status(200).json({ message: 'Media deleted successfully.' });
         });
     } catch (error) {
-        console.error('Error deleting media:', error);
         return res.status(500).json({ error: 'An error occurred while deleting the media.' });
     }
 };
 
+ 

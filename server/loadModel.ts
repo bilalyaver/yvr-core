@@ -1,5 +1,6 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
+import slugify from 'slugify';
 
 // Field interface tanımlaması
 export interface Field {
@@ -10,6 +11,7 @@ export interface Field {
     select?: boolean;
     ref?: string;
     referenceSchema?: string;
+    slugSource?: string;
 }
 
 // SchemaJson interface tanımlaması
@@ -25,6 +27,18 @@ export interface SchemaJson {
 // Model yükleme fonksiyonu
 export function loadModel<T extends Document>(schemaJson: SchemaJson): Model<T> {
     const { model, fields } = schemaJson;
+
+    // Eğer fieldlardan birinin type'ı media ise mongoose.Schema.Types.ObjectId olarak tanımla
+    fields.forEach(field => {
+        if (field.type == 'Media') {
+            field.type = 'ObjectId';
+            field.referenceSchema = 'Media';
+        }
+
+        if (field.type == 'Slug') {
+            field.type = 'String';
+        }
+    });
 
     // Mongoose Schema oluşturulması
     const schemaDefinition: Record<string, any> = {};
@@ -61,6 +75,20 @@ export function loadModel<T extends Document>(schemaJson: SchemaJson): Model<T> 
                 return bcrypt.hashSync(value, 10);
             };
         }
+
+        // Eğer alan bir slug ise, slugify yap
+        if (field.type === 'Slug') {
+            const slugSource = field.slugSource;
+            if(!slugSource) {
+                throw new Error('Slug source field is required for slug fields');
+            }
+            
+            fieldDefinition.set = (value: string) => {
+                return slugify(fields.find(f => f.name == slugSource)?.name || new Date().getTime().toString(), 
+                { lower: true, remove: /[*+~.()'"!:@]/g });
+            };
+        }
+
 
         schemaDefinition[field.name] = fieldDefinition;
     });

@@ -27,12 +27,12 @@ export interface SchemaJson {
 
 // Mongoose bağlantısı
 const config = getConfig();
-mongoose.connect(config.dbUri || 'mongodb://localhost:27017/nodejs', {} );
+mongoose.connect(config.dbUri || 'mongodb://localhost:27017/nodejs', {});
 
 // CRUD fonksiyonlarını içeren interface
 export interface Controller<T extends Document> {
     createItem(data: Partial<T>): Promise<T>;
-    getItem(id: string): Promise<T | null>;
+    getItem(filter?: { id?: string; slug?: string }, populateFields?: string[]): Promise<T | null>;
     updateItem(id: string, data: Partial<T>): Promise<T | null>;
     deleteItem(id: string): Promise<T | null>;
     getAllItems(filter?: Partial<T>, options?: Record<string, unknown>, populateFields?: string[]): Promise<T>;
@@ -48,8 +48,31 @@ function createController<T extends Document>(schemaJson: SchemaJson): Controlle
             const newItem = new Model(data);
             return await newItem.save();
         },
-        async getItem(id: string): Promise<T | null> {
-            return await Model.findById(id).exec();
+        async getItem(filter: { id?: string; slug?: string }, populateFields: string[] = []): Promise<T | null> {
+            let query: any = {};
+
+            if (filter.id) {
+                query._id = filter.id;
+            }
+            if (filter.slug) {
+                query.slug = filter.slug;
+            }
+
+            let itemQuery = Model.findOne(query).setOptions({ strictPopulate: false });
+
+            if (populateFields.length > 0) {
+                populateFields.forEach(field => {
+                    const mainSchemaJsonField = schemaJson.fields.find(f => f.name == field);
+                    const itemSchemaJson = loadSchema(mainSchemaJsonField?.referenceSchema || '');
+                    if (!itemSchemaJson) {
+                        return;
+                    }
+                    loadModel<T>(itemSchemaJson);
+                    itemQuery = itemQuery.populate(field);
+                });
+            }
+
+            return await itemQuery.exec();
         },
         async updateItem(id: string, data: Partial<T>): Promise<T | null> {
             return await Model.findByIdAndUpdate(id, data, { new: true }).exec();
@@ -61,9 +84,10 @@ function createController<T extends Document>(schemaJson: SchemaJson): Controlle
             let query = Model.find(filter, null, options).setOptions({ strictPopulate: false });
 
             if (populateFields.length > 0) {
-                
+
                 populateFields.forEach(field => {
-                    const itemSchemaJson = loadSchema(field);
+                    const mainSchemaJsonField = schemaJson.fields.find(f => f.name == field);
+                    const itemSchemaJson = loadSchema(mainSchemaJsonField?.referenceSchema || '');
                     if (!itemSchemaJson) {
                         return;
                     }
@@ -73,7 +97,7 @@ function createController<T extends Document>(schemaJson: SchemaJson): Controlle
             }
 
             const list = await query.exec();
-            const count = await Model.countDocuments(filter); 
+            const count = await Model.countDocuments(filter);
             const data = { count, list };
             return data as unknown as T;
         }

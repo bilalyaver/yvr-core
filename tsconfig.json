@@ -10,6 +10,7 @@
     "declaration": true,
     "rootDir": "./",
     "jsx": "react-jsx",
+    "resolveJsonModule": true,
   },
   "include": [
     "client/**/*",

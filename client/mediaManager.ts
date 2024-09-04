@@ -72,41 +72,19 @@ export const deleteFile = async (fileId: string) => {
 
 export const deleteFolder = async (folderId: string) => {
     try {
-
-
-        
-
-       console.log('Deleting folder:', folderId);
-
-       
-
-        const foundFolders = await api.get(`/folder:getAll?filter.parent=${folderId}`);
-
-        for (const folder of (foundFolders as any).list) {
-            console.log('Deleting folder:', folder._id);
+        const foundMedia = await api.get(`/media:getAll?filter.folder=${folderId}`);
+        for (const media of (foundMedia as any).list) {
+            await deleteFile(media._id);
         }
-
-
-        // const fileSchema = schemaManager.load('File');
-        // if (!fileSchema) {
-        //     throw new Error('File schema not found.');
-        // }
-
-        // const fileController = createController(fileSchema as any);
-
-        // const files = await fileController.getAllItems({ folder: folderId });
-
-        // files.list.forEach(async (file: any) => {
-        //     await deleteFile(file._id);
-        // });
-
-
+        const foundFolders = await api.get(`/folder:getAll?filter.parent=${folderId}`);
+        await api.delete(`/folder:delete?id=${folderId}`);
+        for (const folder of (foundFolders as any).list) {
+            await deleteFolder(folder._id);
+        }
     } catch (error) {
-        console.error('Error deleting folder:', error);
         throw new Error('Failed to delete folder.');
     }
 }
-
 
 const mediaManager = {
     uploadFiles,

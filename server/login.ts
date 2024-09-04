@@ -21,7 +21,6 @@ const userController = createController<IUser>(userSchema);
 
 export async function login(req: Request, res: Response) {
     const { email, password } = req.body;
-
     try {
         // Kullanıcıyı e-posta adresi ile bul
         const user = await userController.getAllItems({ email });

@@ -28,7 +28,6 @@ async function createRoute(req: Request, res: Response) {
     const queries = req.query;
 
     const { filters, options } = splitFilterAndOptions(queries as Record<string, string>);
-
     const populateFields = req.query.populate ? (req.query.populate as string).split(',') : [];
 
     const schema = loadSchema(modelName);
@@ -51,7 +50,7 @@ async function createRoute(req: Request, res: Response) {
                 res.json(await controller.getAllItems(filters, options, populateFields));
                 break;
             case "get":
-                const item = await controller.getItem(itemId as string);
+                const item = await controller.getItem(filters, populateFields);
                 item ? res.json(item) : res.status(404).json({ error: `${modelName} not found` });
                 break;
             case "create":
