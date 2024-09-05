@@ -46,6 +46,23 @@
         "required": false,
         "unique": false,
         "defaultValue": []
-      }
+      },
+      {
+        "name": "alt",
+        "type": "String",
+        "required": false,
+        "unique": false,
+        "defaultValue": ""
+      },
+       {
+        "name": "dimensions",
+        "type": "Object",
+        "required": false,
+        "unique": false,
+        "defaultValue": {
+          "width": 0,
+          "height": 0
+        }
+       }
     ]
   }

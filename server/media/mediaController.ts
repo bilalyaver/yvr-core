@@ -41,22 +41,44 @@ export const uploadFile = async (req: Request, res: Response) => {
         }
 
         const fileController = createController(fileSchema);
+
+        const mediaId = req.query.mediaId;
+        const dimensions = req.query.dimensions;
         
-        fileController.createItem({
-            name: file?.filename,
-            type: file?.mimetype,
-            size: file?.size,
-            folder: req.body.folder,
-            user: "66cb7ac3b6733b3bd5386564",
-            url: `/images/${file?.filename || ''}`
-        } as Partial<Document<unknown, any, any>>);
+        if (mediaId) {
+            const newMediaData = {
+                name: file?.filename,
+                type: file?.mimetype,
+                size: file?.size,
+                folder: req.body.folder,
+                user : "66cb7ac3b6733b3bd5386564",
+                url: `/images/${file?.filename || ''}`,
+                dimensions: JSON.parse(dimensions as string)
+            } as any;
+
+            fileController.updateItem(mediaId as string, newMediaData);
+
+            return res.status(200).json({ message: 'Media updated successfully.', file });
+
+        } else {
+
+            fileController.createItem({
+                name: file?.filename,
+                type: file?.mimetype,
+                size: file?.size,
+                folder: req.body.folder,
+                user: "66cb7ac3b6733b3bd5386564",
+                url: `/images/${file?.filename || ''}`,
+                dimensions: JSON.parse(dimensions as string)
+            } as Partial<Document<unknown, any, any>>);
 
 
-        return res.status(200).json({ message: 'Media uploaded successfully.', file });
+            return res.status(200).json({ message: 'Media uploaded successfully.', file });
+        }
     });
 };
 
-export const deleteFile = async (req: Request, res: Response) => {
+export const deleteMedia = async (req: Request, res: Response) => {
     try {
         // Media schema'sını yükleme
         const fileSchema = loadSchema('Media');
@@ -93,4 +115,26 @@ export const deleteFile = async (req: Request, res: Response) => {
     }
 };
 
- 
+export const deleteFile = async (req: Request, res: Response) => {
+    try {
+
+
+        const fileName = req.query.fileName;
+
+
+
+        // Dosya yolunu belirleme
+        const projectRoot = path.dirname(require.main?.filename || process.cwd());
+        const filePath = path.join(projectRoot, 'public/images', fileName as string);
+
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                return res.status(500).json({ error: 'Failed to delete media.' });
+            }
+            return res.status(200).json({ message: 'Media deleted successfully.' });
+        });
+    } catch (error) {
+        return res.status(500).json({ error: 'An error occurred while deleting the media.' });
+    }
+};
+

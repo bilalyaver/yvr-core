@@ -20,39 +20,97 @@ export const uploadFiles = (files: File[], options: UploadOptions) => {
         user && formData.append('user', user);
         folder && formData.append('folder', folder);
 
-        const xhr = new XMLHttpRequest();
+        const image = new Image();
+        image.src = URL.createObjectURL(file);
 
-        xhr.open('POST', `${publicPath}/media/upload`, true);
+        // Görsel yüklendiğinde boyutları almak için onload olayını kullan
+        image.onload = () => {
+            let sizes = {
+                width: image.width,
+                height: image.height
+            };
 
-        xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable && onProgress) {
-                const percentComplete = Math.round((event.loaded / event.total) * 100);
-                onProgress(percentComplete, file);
-            }
-        };
+            const dimensions = JSON.stringify(sizes);
 
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                const response = JSON.parse(xhr.responseText);
-                if (onSuccess) {
-                    onSuccess(response, file);
+            const xhr = new XMLHttpRequest();
+
+            xhr.open('POST', `${publicPath}/media/upload?dimensions=${dimensions}`, true);
+    
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable && onProgress) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    onProgress(percentComplete, file);
                 }
-            } else {
+            };
+    
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (onSuccess) {
+                        onSuccess(response, file);
+                    }
+                } else {
+                    if (onError) {
+                        onError(new Error(`Failed to upload file: ${xhr.statusText}`), file);
+                    }
+                }
+            };
+    
+            xhr.onerror = () => {
                 if (onError) {
-                    onError(new Error(`Failed to upload file: ${xhr.statusText}`), file);
+                    onError(new Error('Upload failed.'), file);
                 }
-            }
+            };
+    
+            xhr.send(formData);
         };
 
-        xhr.onerror = () => {
-            if (onError) {
-                onError(new Error('Upload failed.'), file);
-            }
-        };
-
-        xhr.send(formData);
+       
     });
 };
+
+export const updateFile = async (fileId: string, data: any) => {
+
+    const foundFile = await api.get(`/media:get?filter.id=${fileId}`);
+
+    if (!foundFile) {
+        throw new Error('File not found.');
+    }
+    const publicPath = getConfig().publicPath || '';
+
+    const response = await fetch(`${publicPath}/media/deleteFile?fileName=${foundFile.name}`, {
+        method: 'DELETE'
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update file.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', data.file);
+    const xhr = new XMLHttpRequest();
+
+    const dimensions = data.dimensions ? JSON.stringify(data.dimensions) : '';
+
+    xhr.open('POST', `${publicPath}/media/upload?mediaId=${fileId}&dimensions=${dimensions}`, true);
+
+    xhr.onload = () => {
+        if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            return response;
+        } else {
+            throw new Error('Failed to update file.');
+        }
+    };
+
+    xhr.onerror = () => {
+        throw new Error('Failed to update file.');
+    };
+
+    xhr.send(formData);
+
+    return true;
+}
 
 export const deleteFile = async (fileId: string) => {
     const publicPath = getConfig().publicPath || '';
@@ -89,7 +147,8 @@ export const deleteFolder = async (folderId: string) => {
 const mediaManager = {
     uploadFiles,
     deleteFile,
-    deleteFolder
+    deleteFolder,
+    updateFile
 };
 
 export default mediaManager;
