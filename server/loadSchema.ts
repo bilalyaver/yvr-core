@@ -1,5 +1,10 @@
 import path from 'path';
 import ConfigError from '../common/ConfigError';
+import User from './schemas/User.json';
+import Role from './schemas/Role.json';
+import Permission from './schemas/Permission.json';
+import Media from './schemas/Media.json';
+import Folder from './schemas/Folder.json';
 
 
 
@@ -7,7 +12,18 @@ export default function loadSchema(schemaName: string): any {
     const localSchemas = ['User', 'Role', 'Permission', 'Media', 'Folder'];
 
     if(localSchemas.includes(schemaName)) {
-        return require(`./schemas/${schemaName}.json`);
+        switch(schemaName) {
+            case 'User':
+                return User;
+            case 'Role':
+                return Role;
+            case 'Permission':
+                return Permission;
+            case 'Media':
+                return Media;
+            case 'Folder':
+                return Folder;
+        }
     }
 
     try {
