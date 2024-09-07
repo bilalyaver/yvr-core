@@ -85,14 +85,13 @@ function loadAllSchemas(): SchemaDefinition[] {
 
 async function schemaManager(req: Request, res: Response) {
     let [collectionName, action] = req.path.split(':') as [string, Action];
-    const apiKey = req.headers['x-api-key'];
-
+    const apiKeyReq = req.headers['x-api-key'];
     collectionName = collectionName.replace('/', '');
 
-    const config = getConfig();
+    const { apiKey } = getConfig();
 
     // API Key doğrulaması
-    if (apiKey != config.apiKey) {
+    if (apiKeyReq != apiKey) {
         return res.status(403).json({ error: "Access forbidden. Invalid API Key." });
     }
 

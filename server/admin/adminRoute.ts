@@ -5,6 +5,7 @@ import adminController from './adminController';
 import { adminAuthMiddleware } from '../middleware/admin/adminAuthMiddleware';
 import adminCors from '../middleware/admin/adminCors';
 import { customRouteHandler } from '../middleware/admin/customRouteHandler';
+import apiKeyCheck from '../middleware/admin/apiKeyCheck';
 
 const router = Router();
 
@@ -72,7 +73,7 @@ async function adminRoute(req: Request, res: Response) {
     }
 }
 
-router.use(adminCors, customRouteHandler, adminAuthMiddleware,adminRoute);
+router.use(adminCors, apiKeyCheck, customRouteHandler, adminAuthMiddleware,adminRoute);
 
 export default router;
 

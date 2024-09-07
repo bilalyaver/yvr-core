@@ -14,7 +14,6 @@ const headers = () => {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
-            'x-internal-request': 'true',
             'x-api-key': apiKey
         }
     };

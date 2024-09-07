@@ -3,7 +3,6 @@ import createController from './createController';
 import loadSchema from '../loadSchema';
 import { authMiddleware } from '../middleware/authMiddleware';
 import splitFilterAndOptions from '../splitFilterAndOptions';
-import { schemaAccessControl } from '../middleware/schemaAccessControl';
 
 const router = Router();
 
@@ -71,7 +70,7 @@ async function createRoute(req: Request, res: Response) {
     }
 }
 
-router.use(schemaAccessControl, authMiddleware, createRoute); //TODO: Tüm istekler bu route üzerinden geçecek. Ve daha authMiddleware fonksiyonunu çağıracağız.
+router.use(authMiddleware, createRoute); //TODO: Tüm istekler bu route üzerinden geçecek. Ve daha authMiddleware fonksiyonunu çağıracağız.
 
 export default router;
 

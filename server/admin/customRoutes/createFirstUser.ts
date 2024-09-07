@@ -55,7 +55,6 @@ async function createFirstUser(req: Request, res: Response, next: NextFunction) 
         // 5. Başarılı yanıt döndürme
         return res.status(201).json({ message: 'First admin user created successfully', user: newAdmin });
     } catch (error) {
-        console.error(error);
         return res.status(500).json({ error: 'Failed to create first admin user.' });
     }
 }

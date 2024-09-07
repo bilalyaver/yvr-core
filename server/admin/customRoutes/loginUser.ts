@@ -24,8 +24,6 @@ async function loginUser(req: Request, res: Response, next: NextFunction) {
 
     const { email, password } = req.body;
 
-    console.log(email, password);
-
     const user = await userModel.findOne<IUser>({ email })
         .select('password');
 
@@ -35,8 +33,6 @@ async function loginUser(req: Request, res: Response, next: NextFunction) {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-
-    console.log(isMatch)
 
     if (!isMatch) {
         return res.status(400).json({ error: 'Invalid email or password' });

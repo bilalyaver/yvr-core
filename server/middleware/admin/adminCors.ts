@@ -4,7 +4,7 @@ import { getConfig } from '../../../config';
 
 const adminCors = (req: Request, res: Response, next: NextFunction) => {
     const { publicUrl } = getConfig();
-
+    const reqApiKey = req.headers['x-api-key'];
     if (!publicUrl) {
         return res.status(500).json({ message: 'CORS misconfiguration: publicUrl is not set in environment variables' });
     }
