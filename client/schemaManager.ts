@@ -1,26 +1,25 @@
 import axios from 'axios';
 import { getConfig } from '../config';
-import ConfigError from '../common/ConfigError';
 import { logout } from './logout';
+import { getCookie } from 'cookies-next';
 
-let { apiUrl, apiKey } = getConfig();
+let { apiKey } = getConfig();
 
-if (!apiUrl) {
-    throw new ConfigError("The required environment variable API_URL is not. Please make sure that the required environment variables are set correctly in your next.config file")
-}
+
 
 // Add a request interceptor
 const headers = () => {
-
+    const token = getCookie('token');
     return {
         headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'x-internal-request': 'true',
             'x-api-key': apiKey
         }
     };
 }
 
-apiUrl = apiUrl.replace('/api', '');
-apiUrl = `${apiUrl}/schemaManager`;
 
 export interface FieldDefinition {
     name: string;
@@ -34,7 +33,7 @@ export interface FieldDefinition {
 const schemaManager = {
     loadAll: async () => {
         try {
-            const { data } = await axios.get(`${apiUrl}/all:loadAll`, headers());
+            const { data } = await axios.get(`/schemaManager/all:loadAll`, headers());
             return data;
         } catch (error: any) {
             const statusCode = error?.response?.status;
@@ -55,7 +54,7 @@ const schemaManager = {
         };
 
         try {
-            const result = await axios.post(`${apiUrl}/${modelData.name}:create`, schemaDefinition, headers());
+            const result = await axios.post(`/schemaManager/${modelData.name}:create`, schemaDefinition, headers());
             return result?.data;
         } catch (error: any) {
             return error?.response?.data;
@@ -73,7 +72,7 @@ const schemaManager = {
         };
 
         try {
-            const result = await axios.put(`${apiUrl}/${modelData.name}:update`, schemaDefinition, headers());
+            const result = await axios.put(`/schemaManager/${modelData.name}:update`, schemaDefinition, headers());
             return result?.data;
         } catch (error: any) {
             return error?.response?.data;
@@ -81,7 +80,7 @@ const schemaManager = {
     },
     load: async (collectionName: string) => {
         try {
-            const { data } = await axios.get(`${apiUrl}/${collectionName}:load`, headers());
+            const { data } = await axios.get(`/schemaManager/${collectionName}:load`, headers());
             return data;
         } catch (error: any) {
             return error?.response?.data;

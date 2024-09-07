@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
-import createController from './createController';
+import createController from './public/createController';
 import loadSchema from './loadSchema';
 import { Document } from 'mongoose';
 import { getConfig } from '../config';

@@ -1,8 +1,8 @@
 import mongoose, { Document, FilterQuery, Model, Schema } from 'mongoose';
-import { getConfig } from '../config';
+import { getConfig } from '../../config';
 import bcrypt from 'bcrypt';
-import loadSchema from './loadSchema';
-import { loadModel } from './loadModel';
+import loadSchema from '../loadSchema';
+import { loadModel } from '../loadModel';
 
 // Field type tanımlaması
 export interface Field {
@@ -32,13 +32,13 @@ mongoose.connect(config.dbUri || 'mongodb://localhost:27017/nodejs', {});
 // CRUD fonksiyonlarını içeren interface
 export interface Controller<T extends Document> {
     createItem(data: Partial<T>): Promise<T>;
-    getItem(filter?: { id?: string; slug?: string }, populateFields?: string[]): Promise<T | null>;
+    getItem(filter?: Partial<T>, populateFields?: string[]): Promise<T | null>;
     updateItem(id: string, data: Partial<T>): Promise<T | null>;
     deleteItem(id: string): Promise<T | null>;
     getAllItems(filter?: Partial<T>, options?: Record<string, unknown>, populateFields?: string[]): Promise<T>;
 }
 
-function createController<T extends Document>(schemaJson: SchemaJson): Controller<T> {
+function adminController<T extends Document>(schemaJson: SchemaJson): Controller<T> {
 
     const Model = loadModel<T>(schemaJson);
 
@@ -48,7 +48,7 @@ function createController<T extends Document>(schemaJson: SchemaJson): Controlle
             const newItem = new Model(data);
             return await newItem.save();
         },
-        async getItem(filter: { id?: string; slug?: string }, populateFields: string[] = []): Promise<T | null> {
+        async getItem(filter: FilterQuery<T> = {}, populateFields: string[] = []): Promise<T | null> {
             let query: any = {};
 
             if (filter.id) {
@@ -105,4 +105,4 @@ function createController<T extends Document>(schemaJson: SchemaJson): Controlle
 }
 
 
-export default createController;
+export default adminController;

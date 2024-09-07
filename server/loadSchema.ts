@@ -1,25 +1,13 @@
 import path from 'path';
 import ConfigError from '../common/ConfigError';
-import User from './schemas/User.json';
-import Media from './schemas/Media.json';
-import Folder from './schemas/Folder.json';
 
 
 
 export default function loadSchema(schemaName: string): any {
-    const localSchemas = ['User', 'Media', 'Folder'];
+    const localSchemas = ['User', 'Role', 'Permission', 'Media', 'Folder'];
 
     if(localSchemas.includes(schemaName)) {
-        switch(schemaName) {
-            case 'User':
-                return User;
-            case 'Media':
-                return Media;
-            case 'Folder':
-                return Folder;
-            default:
-                return null;
-        }
+        return require(`./schemas/${schemaName}.json`);
     }
 
     try {

@@ -1,7 +1,8 @@
 import loadModels from "./loadModels";
-import createRoute from "./createRoute";
+import createRoute from "./public/createRoute";
+import adminRoute from "./admin/adminRoute";
 import mediaRoute from "./media/mediaRoute";
 import schemaManager from "./schemaManager";
 
 
-export { loadModels, createRoute, schemaManager, mediaRoute };
+export { loadModels, createRoute, adminRoute, schemaManager, mediaRoute };

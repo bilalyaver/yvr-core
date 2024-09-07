@@ -3,7 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import loadSchema from '../loadSchema';
-import createController from '../createController';
+import createController from '../public/createController';
 import { Document } from 'mongoose';
 
 // Dosya yükleme yapılandırması

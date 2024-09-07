@@ -1,31 +1,28 @@
 import axios from 'axios';
 import { getConfig } from '../config';
-import ConfigError from '../common/ConfigError';
 import { getCookie } from 'cookies-next';
 import { logout } from './logout';
 
-let { apiUrl } = getConfig();
+let { apiKey } = getConfig();
 
-if (!apiUrl) {
-  throw new ConfigError("The required environment variable API_URL is not. Please make sure that the required environment variables are set correctly in your next.config file")
-}
+
 
 // Add a request interceptor
 const headers = () => {
   const token = getCookie('token');
   return {
     headers: {
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
     }
   };
 }
 
 
-
 const api = {
   get: async (path: string) => {
     try {
-      const { data } = await axios.get(`${apiUrl}${path}`, headers());
+      const { data } = await axios.get(`/admin/api/${path}`, headers());
       return data;
     } catch (error: any) {
       const statusCode = error?.response?.status;
@@ -37,7 +34,7 @@ const api = {
   },
   post: async (path: string, data: any) => {
     try {
-      const result = await axios.post(`${apiUrl}${path}`, data, headers());
+      const result = await axios.post(`/admin/api/${path}`, data, headers());
       return result?.data;
     } catch (error: any) {
       return error?.response?.data;
@@ -45,7 +42,7 @@ const api = {
   },
   put: async (path: string, data: any) => {
     try {
-      const result = await axios.put(`${apiUrl}${path}`, data, headers());
+      const result = await axios.put(`/admin/api/${path}`, data, headers());
       return result?.data;
     } catch (error: any) {
       return error?.response?.data;
@@ -53,7 +50,7 @@ const api = {
   },
   delete: async (path: string) => {
     try {
-      const result = await axios.delete(`${apiUrl}${path}`, headers());
+      const result = await axios.delete(`/admin/api/${path}`, headers());
       return result?.data;
     } catch (error: any) {
       return error?.response?.data;

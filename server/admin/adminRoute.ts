@@ -1,13 +1,14 @@
 import { Router, Request, Response } from 'express';
-import createController from './createController';
-import loadSchema from './loadSchema';
-import { login } from './login';
-import { authMiddleware } from './authMiddleware';
-import splitFilterAndOptions from './splitFilterAndOptions';
+import loadSchema from '../loadSchema';
+import splitFilterAndOptions from '../splitFilterAndOptions';
+import adminController from './adminController';
+import { adminAuthMiddleware } from '../middleware/admin/adminAuthMiddleware';
+import adminCors from '../middleware/admin/adminCors';
+import { customRouteHandler } from '../middleware/admin/customRouteHandler';
 
 const router = Router();
 
-type Action = 'getAll' | 'get' | 'create' | 'update' | 'delete' | 'login';
+type Action = 'getAll' | 'get' | 'create' | 'update' | 'delete';
 
 const actionMethodMap: Record<Action, string> = {
     getAll: 'GET',
@@ -15,15 +16,14 @@ const actionMethodMap: Record<Action, string> = {
     create: 'POST',
     update: 'PUT',
     delete: 'DELETE',
-    login: 'POST'
 };
 
-async function createRoute(req: Request, res: Response) {
+async function adminRoute(req: Request, res: Response) {
     let [modelName, action] = req.path.split(':') as [string, Action];
 
     modelName = modelName.slice(1); // modelName başındaki / karakterini kaldır
     modelName = modelName.charAt(0).toUpperCase() + modelName.slice(1); // modelName'i baş harfi büyük yap
-    
+
     // Query parametrelerini req.query üzerinden alalım
     const queries = req.query;
 
@@ -41,7 +41,7 @@ async function createRoute(req: Request, res: Response) {
         return res.status(405).json({ error: `Method ${req.method} not allowed for action ${action}. Expected ${expectedMethod}.` });
     }
 
-    const controller = createController(schema);
+    const controller = adminController(schema);
 
     try {
         const itemId = req.query.id;
@@ -64,9 +64,6 @@ async function createRoute(req: Request, res: Response) {
                 const deletedItem = await controller.deleteItem(itemId as string);
                 deletedItem ? res.json(deletedItem) : res.status(404).json({ error: `${modelName} not found` });
                 break;
-            case "login":
-                await login(req, res);
-                break;
             default:
                 res.status(404).json({ error: "Action not found" });
         }
@@ -74,8 +71,8 @@ async function createRoute(req: Request, res: Response) {
         res.status(500).json({ error: err.message });
     }
 }
- 
-router.use(createRoute); //TODO: Tüm istekler bu route üzerinden geçecek. Ve daha authMiddleware fonksiyonunu çağıracağız.
+
+router.use(adminCors, customRouteHandler, adminAuthMiddleware,adminRoute);
 
 export default router;
 
