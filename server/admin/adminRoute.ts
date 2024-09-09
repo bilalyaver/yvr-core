@@ -73,7 +73,7 @@ async function adminRoute(req: Request, res: Response) {
     }
 }
 
-router.use(adminCors, apiKeyCheck, customRouteHandler, adminAuthMiddleware,adminRoute);
+router.use(adminCors, apiKeyCheck, customRouteHandler, adminAuthMiddleware, adminRoute);
 
 export default router;
 

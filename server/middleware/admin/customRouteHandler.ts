@@ -2,13 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import firstUserCheck from '../../admin/customRoutes/firstUserCheck';
 import createFirstUser from '../../admin/customRoutes/createFirstUser';
 import loginUser from '../../admin/customRoutes/loginUser';
+import informations from '../../admin/customRoutes/informations';
 
 
 // Her bir path için fonksiyonları tanımlıyoruz
 const routeFunctions: Record<string, (req: Request, res: Response, next: NextFunction) => Promise<void>> = {
     '/firstUserCheck': async (req: Request, res: Response, next: NextFunction) => { await firstUserCheck(req, res, next); },
     '/createFirstUser': async (req: Request, res: Response, next: NextFunction) => { await createFirstUser(req, res, next); },
-    '/login': async (req: Request, res: Response, next: NextFunction) => { await loginUser(req, res, next); }
+    '/login': async (req: Request, res: Response, next: NextFunction) => { await loginUser(req, res, next); },
+    '/informations': async (req: Request, res: Response, next: NextFunction) => { await informations(req, res, next); },
 };
 
 // Custom route handler middleware

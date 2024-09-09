@@ -13,6 +13,7 @@ export interface Field {
     select?: boolean;
     ref?: string;
     referenceSchema?: string;
+    items?: Field;
 }
 
 // SchemaJson interface tanımlaması
@@ -63,12 +64,33 @@ function adminController<T extends Document>(schemaJson: SchemaJson): Controller
             if (populateFields.length > 0) {
                 populateFields.forEach(field => {
                     const mainSchemaJsonField = schemaJson.fields.find(f => f.name == field);
-                    const itemSchemaJson = loadSchema(mainSchemaJsonField?.referenceSchema || '');
-                    if (!itemSchemaJson) {
+
+                    if (!mainSchemaJsonField) {
                         return;
                     }
-                    loadModel<T>(itemSchemaJson);
-                    itemQuery = itemQuery.populate(field);
+
+                    // Eğer dizi (Array) bir ObjectId referansı içeriyorsa, populate işlemini bu şekilde yapıyoruz
+                    if (mainSchemaJsonField.type === 'Array' && mainSchemaJsonField.items?.type === 'ObjectId') {
+                        const itemSchemaJson = loadSchema(mainSchemaJsonField.items?.referenceSchema || '');
+                        if (!itemSchemaJson) {
+                            return;
+                        }
+                        loadModel<T>(itemSchemaJson);
+
+                        // Dizi içindeki her ObjectId için populate işlemi
+                        itemQuery = itemQuery.populate({
+                            path: field,  // Dizi içindeki referans alan (örneğin 'permissions')
+                            model: mainSchemaJsonField.items.referenceSchema, // Referans edilen model (örneğin "Permission")
+                        });
+                    } else if (mainSchemaJsonField.type === 'ObjectId') {
+                        // Tekil ObjectId için populate
+                        const itemSchemaJson = loadSchema(mainSchemaJsonField.referenceSchema || '');
+                        if (!itemSchemaJson) {
+                            return;
+                        }
+                        loadModel<T>(itemSchemaJson);
+                        itemQuery = itemQuery.populate(field);
+                    }
                 });
             }
 
@@ -84,15 +106,35 @@ function adminController<T extends Document>(schemaJson: SchemaJson): Controller
             let query = Model.find(filter, null, options).setOptions({ strictPopulate: false });
 
             if (populateFields.length > 0) {
-
                 populateFields.forEach(field => {
                     const mainSchemaJsonField = schemaJson.fields.find(f => f.name == field);
-                    const itemSchemaJson = loadSchema(mainSchemaJsonField?.referenceSchema || '');
-                    if (!itemSchemaJson) {
+
+                    if (!mainSchemaJsonField) {
                         return;
                     }
-                    loadModel<T>(itemSchemaJson);
-                    query = query.populate(field);
+
+                    if (mainSchemaJsonField.type === 'Array' && mainSchemaJsonField.items?.type === 'ObjectId') {
+                        // Eğer dizi bir ObjectId referansı içeriyorsa, populate işlemini bu şekilde yapıyoruz
+                        const itemSchemaJson = loadSchema(mainSchemaJsonField.items?.referenceSchema || '');
+                        if (!itemSchemaJson) {
+                            return;
+                        }
+                        loadModel<T>(itemSchemaJson);
+
+                        // Dizi içindeki her ObjectId için populate işlemi
+                        query = query.populate({
+                            path: field,  // 'permissions' gibi dizi alanı
+                            model: mainSchemaJsonField.items.referenceSchema, // "Permission" modeline referans
+                        });
+                    } else if (mainSchemaJsonField.type === 'ObjectId') {
+                        // Tekil ObjectId için populate
+                        const itemSchemaJson = loadSchema(mainSchemaJsonField.referenceSchema || '');
+                        if (!itemSchemaJson) {
+                            return;
+                        }
+                        loadModel<T>(itemSchemaJson);
+                        query = query.populate(field);
+                    }
                 });
             }
 
