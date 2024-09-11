@@ -70,7 +70,7 @@ async function createRoute(req: Request, res: Response) {
     }
 }
 
-router.use(authMiddleware, createRoute); //TODO: Tüm istekler bu route üzerinden geçecek. Ve daha authMiddleware fonksiyonunu çağıracağız.
+router.use(createRoute); //TODO: Tüm istekler bu route üzerinden geçecek. Ve daha authMiddleware fonksiyonunu çağıracağız.
 
 export default router;
 

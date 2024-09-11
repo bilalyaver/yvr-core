@@ -29,7 +29,7 @@ const upload = multer({ storage: storage });
 export const uploadFile = async (req: Request, res: Response) => {
     upload.single('file')(req, res, (err) => {
         if (err) {
-            return res.status(500).json({ error: 'Media upload failed.' });
+            return res.status(500).json({ error: err.message });
         }
 
 
