@@ -144,6 +144,45 @@ schemaFiles.forEach((file: string) => {
       },
     },
   } as OpenAPIV3.PathItemObject;
+
+  definition.paths[`/api/${modelName.toLowerCase()}:update`] = {
+    put: {
+      tags: [modelName],
+      summary: `Update a ${modelName}`,
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: { $ref: `#/components/schemas/${modelName}` },
+          },
+        },
+      },
+      responses: {
+        '200': { description: `${modelName} updated` },
+      },
+    },
+  } as OpenAPIV3.PathItemObject;
+
+  definition.paths[`/api/${modelName.toLowerCase()}:delete`] = {
+    delete: {
+      tags: [modelName],
+      summary: `Delete a ${modelName}`,
+      parameters: [
+        {
+          in: 'query',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: `ID of the ${modelName} to delete`,
+        },
+      ],
+      responses: {
+        '200': { description: `${modelName} deleted` },
+      },
+    },
+  } as OpenAPIV3.PathItemObject;
 });
 
 // Swagger seçeneklerini oluştur
