@@ -56,9 +56,7 @@ export const initializeServer = async () => {
   });
 
   // Sunucuyu belirtilen portta dinlemeye başla
-  server.listen(port, () => {
-    console.log(`🚀 Server ready at http://localhost:${port}`);
-  });
+  server.listen(port);
 
   return server;
 };
