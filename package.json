@@ -1,6 +1,6 @@
 {
     "name": "yvr-core",
-    "version": "0.3.16",
+    "version": "0.3.17",
     "description": "A collection of helper functions for @bilalyaver/nodejs-boilerplate",
     "main": "./dist/client/index.js",
     "types": "dist/index.d.ts",
