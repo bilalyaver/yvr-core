@@ -149,6 +149,17 @@ schemaFiles.forEach((file: string) => {
     put: {
       tags: [modelName],
       summary: `Update a ${modelName}`,
+      parameters: [
+        {
+          in: 'query',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: `ID of the ${modelName} to update`,
+        },
+      ],
       requestBody: {
         required: true,
         content: {
